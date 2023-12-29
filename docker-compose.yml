@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: test123
+      POSTGRES_USER: test
+      POSTGRES_DB: test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./otel-collector.yml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317:4317"  # gRPC port
+      - "8889:8889"  # Prometheus metrics export port
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  myapp:
+    build: .
+    ports:
+      - "40000:40000"
+    environment:
+      OTEL_EXPORTER_OTLP_INSECURE: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+    depends_on:
+      - postgres
+      - otel-collector
+      - prometheus
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:

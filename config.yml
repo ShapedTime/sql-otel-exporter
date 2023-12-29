@@ -1,0 +1,21 @@
+datasource: host=postgres port=5432 user=test password=test123 dbname=test sslmode=disable
+driver: postgres
+queries:
+  - sql: select test1, test2, value1 from test
+    metric_name: test_metric
+    value_column: value1
+    attribute_columns: [test1, test2]
+    data_type: gauge
+    description: test values
+    interval_seconds: 30
+    static_attributes:
+      dbinstance: test-db
+  - sql: select test1, test2, value1 from test1
+    metric_name: test_metric1
+    value_column: value1
+    attribute_columns: [test1, test2]
+    data_type: histogram
+    description: test values
+    interval_seconds: 30
+    static_attributes:
+      dbinstance: test-db
